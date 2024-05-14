@@ -6,7 +6,7 @@ from django.http import HttpResponseNotFound
 from piforever.settings import BASE_DIR
 
 DIGIT_COUNT = 1_000_000_000
-CHUNK_SIZE = 100
+CHUNK_SIZE = 2048
 PI_FILE_PATH = BASE_DIR / 'pi-billion.txt'
 
 def home(request):
