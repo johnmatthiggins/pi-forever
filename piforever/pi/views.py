@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.template import loader
+from django.http import StreamingHttpResponse
 from django.http import HttpResponse
 from django.http import HttpResponseNotFound
 
@@ -9,14 +10,21 @@ DIGIT_COUNT = 1_000_000_000
 CHUNK_SIZE = 2048
 PI_FILE_PATH = BASE_DIR / 'pi-billion.txt'
 
-def home(request):
+async def digits_of_pi():
+    yield "<span id='digits' style='font-family: monospace;'>"
     f = open(PI_FILE_PATH, 'rb')
-    first_chunk = f.read(CHUNK_SIZE).decode("utf-8")
+    next_chunk = f.read(CHUNK_SIZE).decode("utf-8")
+    while len(next_chunk) > 0:
+        yield f'{next_chunk}\n'
+        next_chunk = f.read(CHUNK_SIZE).decode("utf-8")
     f.close()
+    yield "</span>"
 
-    return HttpResponse(loader.get_template("home.django.html").render({ "first_chunk": first_chunk }, request))
+async def home(_):
+    # return HttpResponse(loader.get_template("home.django.html").render({ "first_chunk": first_chunk }, request))
+    return StreamingHttpResponse(digits_of_pi())
 
-def digits(request, start_range):
+async def digits(request, start_range):
     if int(start_range) > DIGIT_COUNT - CHUNK_SIZE:
         return HttpResponseNotFound()
     f = open(PI_FILE_PATH, 'rb')
